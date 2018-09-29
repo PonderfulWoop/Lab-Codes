@@ -73,8 +73,7 @@ int main(){
 		}
 	}
     flag = 0;
-
-	while(first_1 != NULL && first_2 != NULL){
+	while(first_1!=NULL && first_2!=NULL){
 		if(first_1->data>first_2->data){
 			last_3 = insert(last_3, first_2->data);
 		    if(flag == 0){
