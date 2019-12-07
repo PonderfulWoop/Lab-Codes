@@ -1,0 +1,2 @@
+no. of users: who | wc -l
+no. of files: ls -l | wc -l

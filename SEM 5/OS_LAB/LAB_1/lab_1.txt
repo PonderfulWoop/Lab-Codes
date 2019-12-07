@@ -1,0 +1,17 @@
+Q1. mkdir -p d1/d2 && mkdir -p d1/d3
+
+Q2. cat>one.txt && cat>two.txt && cat>three.txt
+
+Q3. cp d2/one.txt d3/one.txt
+
+Q4. cat>cmd.txt
+    no. of users: who | wc -l
+    no. of files: ls -l | wc -ls
+
+Q5. ls a* ; ls A*
+
+Q6. cc sort.c && ./a.out || echo "Error Occured"
+
+Q7. head -5 fif.txt; tail -5 fif.txt
+
+Q8. pwd>file.txt && date>>file.txt && ls>>file.txt

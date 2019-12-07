@@ -1,0 +1,5 @@
+/home/170905178/Desktop/OS_LAB/LAB_1/d1
+Tue Jul 23 21:33:16 IST 2019
+d2
+d3
+file.txt
