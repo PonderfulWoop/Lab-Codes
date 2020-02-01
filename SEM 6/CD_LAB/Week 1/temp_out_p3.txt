@@ -1,0 +1,12 @@
+
+Line : 1 Column : 2	INCLUDE
+
+Line : 2 Column : 2	INCLUDE
+
+Line : 7 Column : 1	LONG
+
+Line : 8 Column : 1	FLOAT
+
+Line : 9 Column : 1	INT
+
+Line : 11 Column : 12	INCLUDE
