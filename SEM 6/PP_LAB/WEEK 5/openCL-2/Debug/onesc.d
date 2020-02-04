@@ -1,0 +1,1 @@
+onesc.d: ../onesc.c

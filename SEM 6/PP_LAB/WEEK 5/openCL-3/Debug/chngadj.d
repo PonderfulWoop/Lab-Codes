@@ -1,0 +1,1 @@
+chngadj.d: ../chngadj.c
