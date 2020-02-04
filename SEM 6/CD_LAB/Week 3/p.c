@@ -289,7 +289,7 @@ int main()
     {
         char buff[30];
         int i = 0;
-        if (c == '/')
+        while (c == '/')
         {
             c = fgetc(fp);
             if (c == '/')

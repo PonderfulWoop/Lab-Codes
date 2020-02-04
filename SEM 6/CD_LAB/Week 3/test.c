@@ -10,6 +10,7 @@ int prime ( int n )
 {
 int i ;
 //This uses math function
+//Hello Ji
 for ( i = 0 ; i < sqrt ( n ) ; i ++ )
 if ( n % i == 0 && i <= n )
 return 0 ;
