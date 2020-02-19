@@ -14,6 +14,7 @@ int start = 0;
 Token genToken(){
     return tkns[start++];
 }
+
 void T();
 void E();
 
