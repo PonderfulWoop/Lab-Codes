@@ -1,1 +1,1 @@
-(id*id)+id$
+((number)(id))$

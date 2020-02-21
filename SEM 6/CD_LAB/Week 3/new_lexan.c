@@ -6,8 +6,7 @@
 #define TableLength 30
 #define max_tokens 300
 
-struct Token
-{
+struct Token{
     char lexname[20];
     int row, col;
     char type[20];
@@ -15,8 +14,7 @@ struct Token
 
 typedef struct Token Token;
 
-struct ListElement
-{
+struct ListElement{
 
     Token token;
     struct ListElement *next;
@@ -27,17 +25,15 @@ typedef struct ListElement ListElement;
 ListElement *TABLE[TableLength];
 Token tkns[max_tokens];
 int tkn_count = 0;
-
+FILE *fp;
 //---------------------Data Structure Definitions ---------------------
 
-void init()
-{
+void init(){
     for (int i = 0; i < TableLength; i++)
         TABLE[i] = NULL;
 }
 
-FILE *ignorePreprop(FILE *fp)
-{
+FILE *ignorePreprop(FILE *fp){
     int flag = 0;
     char ca = fgetc(fp);
     while (ca == '#')
@@ -56,18 +52,24 @@ FILE *ignorePreprop(FILE *fp)
     }
 }
 
-int isArith(char str[])
-{
-    if (!strcmp(str, "+") || !strcmp(str, "<-"))
+int isArith(char str[]){
+    if (!strcmp(str, "+") || !strcmp(str, "-") || !strcmp(str, "*") || !strcmp(str, "/") || !strcmp(str, "=") || !strcmp(str, "++") || !strcmp(str, "--") || !strcmp(str, "%") || !strcmp(str, "-=") || !strcmp(str, "+=") || !strcmp(str, "*=") || !strcmp(str, "/="))
         return 1;
     return 0;
 }
 
-int isRelational(char str[])
-{
+int isRelational(char str[]){
     if (!strcmp(str, "<") || !strcmp(str, ">") || !strcmp(str, "<=") || !strcmp(str, ">=") || !strcmp(str, "==") || !strcmp(str, "!="))
         return 1;
     return 0;
+}
+
+int isNumeric(char str[]){
+    for (int i = 0; i < strlen(str); i++)
+        if (!isdigit(str[i]))
+            return 0;
+
+    return 1;
 }
 
 int isLogical(char str[])
@@ -84,22 +86,6 @@ int isLiteral(char str[])
     return 0;
 }
 
-int isNumeric(char str[])
-{
-    for (int i = 0; i < strlen(str); i++)
-        if (!isdigit(str[i]))
-            return 0;
-
-    return 1;
-}
-
-int isKeyword(char str[])
-{
-    if (!strcmp(str, "auto") || !strcmp(str, "default") || !strcmp(str, "signed") || !strcmp(str, "enum") || !strcmp(str, "extern") || !strcmp(str, "for") || !strcmp(str, "register") || !strcmp(str, "if") || !strcmp(str, "else") || !strcmp(str, "int") || !strcmp(str, "while") || !strcmp(str, "do") || !strcmp(str, "break") || !strcmp(str, "continue") || !strcmp(str, "double") || !strcmp(str, "float") || !strcmp(str, "return") || !strcmp(str, "char") || !strcmp(str, "case") || !strcmp(str, "const") || !strcmp(str, "sizeof") || !strcmp(str, "long") || !strcmp(str, "short") || !strcmp(str, "typedef") || !strcmp(str, "switch") || !strcmp(str, "unsigned") || !strcmp(str, "void") || !strcmp(str, "static") || !strcmp(str, "struct") || !strcmp(str, "goto") || !strcmp(str, "union") || !strcmp(str, "volatile"))
-        return (1);
-    return (0);
-}
-
 int isSpecial(char buff[])
 {
     if (!strcmp(buff, "("))
@@ -110,8 +96,6 @@ int isSpecial(char buff[])
         return 1;
     else if (!strcmp(buff, ";"))
         return 1;
-    else if (!strcmp(buff, ":"))
-        return 1;
     else if (!strcmp(buff, "{"))
         return 1;
     else if (!strcmp(buff, "}"))
@@ -120,9 +104,14 @@ int isSpecial(char buff[])
         return 1;
     else if (!strcmp(buff, "]"))
         return 1;
-    else if (!strcmp(buff, "."))
-        return 1;
     return 0;
+}
+
+int isKeyword(char str[])
+{
+    if (!strcmp(str, "auto") || !strcmp(str, "default") || !strcmp(str, "signed") || !strcmp(str, "enum") || !strcmp(str, "extern") || !strcmp(str, "for") || !strcmp(str, "register") || !strcmp(str, "if") || !strcmp(str, "else") || !strcmp(str, "int") || !strcmp(str, "while") || !strcmp(str, "do") || !strcmp(str, "break") || !strcmp(str, "continue") || !strcmp(str, "double") || !strcmp(str, "float") || !strcmp(str, "return") || !strcmp(str, "char") || !strcmp(str, "case") || !strcmp(str, "const") || !strcmp(str, "sizeof") || !strcmp(str, "long") || !strcmp(str, "short") || !strcmp(str, "typedef") || !strcmp(str, "switch") || !strcmp(str, "unsigned") || !strcmp(str, "void") || !strcmp(str, "static") || !strcmp(str, "struct") || !strcmp(str, "goto") || !strcmp(str, "union") || !strcmp(str, "volatile"))
+        return (1);
+    return (0);
 }
 
 int isIdentifier(char str[])
@@ -141,7 +130,7 @@ int isIdentifier(char str[])
 
 int delimiter(char c)
 {
-    char *delim = " +-*/,.;:><=()[]{}$\n";
+    char *delim = " +-*/,.;:><=!()[]{}%$\n";
     int len = strlen(delim);
     for (int i = 0; i < len; i++)
         if (c == delim[i])
@@ -290,7 +279,7 @@ int main()
 
     init();
     char c;
-    FILE *fp = fopen("test.c", "r");
+    fp = fopen("temp.c", "rb+"); //use rb+ for windows
     //Ignores preprop
     fp = ignorePreprop(fp);
 
@@ -337,19 +326,39 @@ int main()
         Token t = getNextToken(buff, line, col);
         tkns[tkn_count++] = t;
 
-        if (t.row != -1)
-        {
+        if (t.row != -1){
             printf("<%s, %d, %d, %s>\n", t.lexname, t.row, t.col, t.type);
         }
-        if (delimiter(c) && c != ' ' && c != '\n')
-        {
-            char tempb[2];
-            tempb[0] = c;
-            tempb[1] = '\0';
-            Token temp = getNextToken(tempb, line, ++col);
-            tkns[tkn_count++] = t;
-            if (temp.row != -1)
-                printf("<%s, %d, %d, %s>\n", temp.lexname, temp.row, temp.col, temp.type);
+        if (delimiter(c) && c != ' ' && c != '\n'){
+            if(c == '<' || c == '=' || c == '+' || c == '-' || c == '*' || c == '/' || c == '>'){
+                char k = fgetc(fp);
+                if(k == '=' || (c == '+' && k == '+') || (c == '-' && k == '-')){
+                    char tempb1[3]; tempb1[0] = c; tempb1[1] = k; tempb1[2] = '\0';
+                    Token temp = getNextToken(tempb1, line, ++col);
+                    tkns[tkn_count++] = temp;
+                    if (temp.row != -1)
+                        printf("<%s, %d, %d, %s>\n", temp.lexname, temp.row, temp.col, temp.type);
+                }
+                else{
+                    fseek(fp, -1, SEEK_CUR);
+                    char tempb[2];
+                    tempb[0] = c;
+                    tempb[1] = '\0';
+                    Token temp = getNextToken(tempb, line, ++col);
+                    tkns[tkn_count++] = temp;
+                    if (temp.row != -1)
+                        printf("<%s, %d, %d, %s>\n", temp.lexname, temp.row, temp.col, temp.type);
+                }
+            }
+            else{
+                char tempb[2];
+                tempb[0] = c;
+                tempb[1] = '\0';
+                Token temp = getNextToken(tempb, line, ++col);
+                tkns[tkn_count++] = temp;
+                if (temp.row != -1)
+                    printf("<%s, %d, %d, %s>\n", temp.lexname, temp.row, temp.col, temp.type);
+            }
         }
         c = fgetc(fp);
     }
