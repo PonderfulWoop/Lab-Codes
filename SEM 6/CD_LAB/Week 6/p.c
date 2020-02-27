@@ -25,6 +25,7 @@ void simple_expn();
 void eprime();
 void seprime();
 void tprime();
+void dprime();
 
 void Program(){
     lookahead = genToken();
@@ -42,6 +43,10 @@ void Program(){
                         lookahead = genToken();
                         if(strcmp(lookahead.lexname, "}") == 0){
                             return;
+                        }
+                        else{
+                            printf("Error - Expected }\n");
+                            exit(1);
                         }
                     }
                 }
@@ -135,11 +140,116 @@ void statement(){
             }
         }
     }
+    else if(strcmp(lookahead.lexname, "if") == 0){
+        lookahead = genToken();
+        if(strcmp(lookahead.lexname, "(") == 0){
+            expn();
+            lookahead = genToken();
+            if(strcmp(lookahead.lexname, ")") == 0){
+                lookahead = genToken();
+                if(strcmp(lookahead.lexname, "{") == 0){
+                    statement_list();
+                    lookahead = genToken();
+                    if(strcmp(lookahead.lexname, "}") == 0){
+                        dprime();
+                    }
+                    else{
+                        printf("Error - Expected }\n");
+                        exit(1);
+                    }
+                }
+                else{
+                    printf("Error - Expected }\n");
+                    exit(1);
+                }
+            }
+            else{
+                printf("Error - Expected )\n");
+                exit(1);
+            }
+        }
+        else{
+            printf("Error - Expected (\n");
+            exit(1);
+        }
+    }
+    else if(strcmp(lookahead.lexname, "while") == 0){
+        lookahead = genToken();
+        if(strcmp(lookahead.lexname, "(") == 0){
+            expn();
+            lookahead = genToken();
+            if(strcmp(lookahead.lexname, ")") == 0){
+                lookahead = genToken();
+                if(strcmp(lookahead.lexname, "{") == 0){
+                    statement_list();
+                    lookahead = genToken();
+                    if(strcmp(lookahead.lexname, "}") == 0){
+                        //do nothing;
+                    }
+                }
+            }
+        }
+    }
+    else if(strcmp(lookahead.lexname, "for") == 0){
+        lookahead = genToken();
+        if(strcmp(lookahead.lexname, "(") == 0){
+            lookahead = genToken();
+            if(strcmp(lookahead.type, "Identifier") == 0){
+                start--;
+                statement();
+                expn();
+                lookahead = genToken();
+                if(strcmp(lookahead.lexname, ";") == 0){
+                    lookahead = genToken();
+                    if(strcmp(lookahead.type, "Identifier") == 0){
+                        lookahead = genToken();
+                        if (strcmp(lookahead.lexname, "=") == 0){
+                            expn();
+                            lookahead = genToken();
+                            if(strcmp(lookahead.lexname, ")") == 0){
+                                lookahead = genToken();
+                                if(strcmp(lookahead.lexname, "{") == 0){
+                                    statement_list();
+                                    lookahead = genToken();
+                                    if(strcmp(lookahead.lexname, "}") == 0){
+                                        //do nothing;
+                                    }
+                                    else{
+                                        printf("Error\n");
+                                        exit(1);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    }
 }
 
 void expn(){
     simple_expn();
     eprime();
+}
+
+void dprime(){
+    lookahead = genToken();
+    if(strcmp(lookahead.lexname, "else") == 0){
+        lookahead = genToken();
+        if(strcmp(lookahead.lexname, "{") == 0){
+            statement_list();
+            lookahead = genToken();
+            if(strcmp(lookahead.lexname, "}") == 0){
+                //do nothing;
+            }
+        }
+    }
+    else{
+        start--;
+        return;
+    }
 }
 
 void eprime(){
@@ -149,7 +259,6 @@ void eprime(){
     }
     else{
         start--;
-        return;
     }
 }
 
@@ -167,8 +276,7 @@ void seprime(){
         simple_expn();
     }
     else{
-        start --;
-        return;
+        start--;
     }
 }
 
@@ -182,7 +290,6 @@ void tprime(){
     }
     else{
         start--;
-        return;
     }
 }
 
@@ -205,20 +312,22 @@ int main(){
     }while(t.row != -999);
     fclose(fp);
 
-
+    printf("Tokens: \n");
     for(int i = 0; i<tkn_count; i++)
-        printf("%s\t%d\t%d\n", tkns[i].lexname, tkns[i].row, tkns[i].col);
-    printf("\n");
+        printf("%s\t", tkns[i].lexname);
+    printf("\n===============================================================\n");
 
     //PARSING THE FILE
     Program();
     lookahead = genToken();
     if(strcmp(lookahead.lexname, "$") == 0){
-            printf("Success\n");
+            printf("Success in Parsing\n");
             exit(0);
     }
     else{
-        printf("Failure\n");
+        printf("Failure, lookahead = %s\n", lookahead.lexname);
+        lookahead = genToken();
+        printf("\n%s", lookahead.lexname);
         exit(1);
     }
 }

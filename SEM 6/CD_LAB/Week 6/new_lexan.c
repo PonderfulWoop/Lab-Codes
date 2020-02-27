@@ -143,7 +143,7 @@ int delimiter(char c)
     return 0;
 }
 
-Token getNextToken(FILE *fp)
+Token getNextToken(FILE* fp)
 {
     char c;
     char buff[30];
@@ -248,6 +248,13 @@ Token getNextToken(FILE *fp)
         t.col = col;
         strcpy(t.type, "Arithmetic");
     }
+    else if (isSpecial(buff))
+    {
+        strcpy(t.lexname, buff);
+        t.row = row;
+        t.col = col;
+        strcpy(t.type, "Special Symbol");
+    }
     else if (isRelational(buff))
     {
         strcpy(t.lexname, buff);
@@ -268,13 +275,6 @@ Token getNextToken(FILE *fp)
         t.row = row;
         t.col = col;
         strcpy(t.type, "Logical");
-    }
-    else if (isSpecial(buff))
-    {
-        strcpy(t.lexname, buff);
-        t.row = row;
-        t.col = col;
-        strcpy(t.type, "Special Symbol");
     }
     else if (isNumeric(buff))
     {

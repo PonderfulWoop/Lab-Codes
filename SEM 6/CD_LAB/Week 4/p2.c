@@ -3,13 +3,14 @@
 #include <string.h>
 #include "new_lexan.c"
 
-#define MAX 200
+#define MAX 300
 
 char str[30];
 Token lookahead;
 Token tkns[MAX];
 int tkn_count = 0;
 int start = 0;
+FILE* fp;
 
 char first_S[20][5] = {"a", "\0"};
 char follow_S[20][5] = {"$", "\0"};
@@ -159,45 +160,28 @@ void B(){
 }
 
 int main(){
+    init();
     char c;
-    FILE *fp = fopen("h.c", "r");
+    fp = fopen("h.c", "rb+"); //use rb+ for windows
     //Ignores preprop
-    c = fgetc(fp);
+    fp = ignorePreprop(fp);
+    Token t;
 
-    while(c != EOF){
-        char buff[30];
-        int i = 0;
-
-        while (c == ' ' || c == '\t')
-            c = fgetc(fp);
-
-        while (delimiter(c) == 0 && c != EOF)
+    do
+    {
+        t = getNextToken(fp);
+        if (t.row > -1)
         {
-            buff[i++] = c;
-            c = fgetc(fp);
-        }
-        
-        buff[i] = '\0';
-        Token t = getNextToken(buff, 0, 0);
-        
-        if(t.row != -1)
             tkns[tkn_count++] = t;
-
-        if (delimiter(c) && c != ' ' && c != '\n')
-        {
-            char tempb[2];
-            tempb[0] = c;
-            tempb[1] = '\0';
-            Token temp = getNextToken(tempb, 0, 0);
-            tkns[tkn_count++] = temp;
         }
+    } while (t.row != -999);
+    fclose(fp);
 
-        c = fgetc(fp);
-    }
-    for(int i = 0; i<tkn_count; i++)
-        printf("%s\t", tkns[i].lexname);
+    for (int i = 0; i < tkn_count; i++)
+        printf("%s\t%d\t%d\n", tkns[i].lexname, tkns[i].row, tkns[i].col);
     printf("\n");
 
+    //PARSING THE FILE
     S();
     lookahead = genToken();
     if(strcmp(lookahead.lexname, "$") == 0){

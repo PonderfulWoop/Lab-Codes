@@ -3,5 +3,6 @@ int main(){
     char d, e[25];
     a = a*b;
     a = b++;
+	b *= g;
     b = g/a + b;
 }$

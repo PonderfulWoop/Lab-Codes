@@ -25,6 +25,8 @@ struct ListElement
 typedef struct ListElement ListElement;
 
 ListElement *TABLE[TableLength];
+int row = 0;
+int col = 1;
 
 void init()
 {
@@ -141,65 +143,156 @@ int delimiter(char c)
     return 0;
 }
 
-Token getNextToken(char lexname[], int row, int col)
+Token getNextToken(FILE* fp)
 {
+    char c;
+    char buff[30];
     Token t;
-    if (lexname[0] == '\0')
+    int db_quote = 0;
+    c = fgetc(fp);
+
+    while (c != EOF)
+    {
+        memset(buff, '\0', sizeof(buff));
+        int i = 0;
+
+        while (c == ' ' || c == '\t')
+            c = fgetc(fp);
+
+        while (c == '/')
+        {
+            char p = fgetc(fp);
+            if (p == '/')
+            {
+                while (p != '\n')
+                    p = fgetc(fp);
+            }
+            else if (p == '*')
+            {
+                while (p != '/')
+                    p = fgetc(fp);
+                p = fgetc(fp);
+            }
+            else
+            {
+                fseek(fp, -1, SEEK_CUR);
+                break;
+            }
+            c = p;
+        }
+
+        if (delimiter(c) && c != ' ' && c != '\n' && c != EOF)
+        {
+            if (c == '<' || c == '=' || c == '+' || c == '-' || c == '*' || c == '/' || c == '>')
+            {
+                char k = fgetc(fp);
+                if (k == '=' || (c == '+' && k == '+') || (c == '-' && k == '-'))
+                {
+                    buff[0] = c;
+                    buff[1] = k;
+                    buff[2] = '\0';
+                    col += 2;
+                }
+                else
+                {
+                    fseek(fp, -1, SEEK_CUR);
+                    buff[0] = c;
+                    buff[1] = '\0';
+                    col++;
+                }
+            }
+            else
+            {
+                buff[0] = c;
+                buff[1] = '\0';
+                col++;
+            }
+            break;
+        }
+
+        while ((delimiter(c) == 0 || (delimiter(c) == 1 && db_quote)) && c != EOF)
+        {
+            col++;
+            buff[i++] = c;
+            if (c == '"')
+                db_quote = (db_quote + 1) % 2;
+            c = fgetc(fp);
+        }
+
+        if (c == '\n')
+        {
+            row++;
+            col = 1;
+        }
+        buff[i] = '\0';
+        if (delimiter(c) && c != ' ' && c != '\n' && c != EOF)
+            fseek(fp, -1, SEEK_CUR);
+        break;
+    }
+
+    if (c == EOF)
+    {
+        t.row = -999;
+        return t;
+    }
+
+    //---------Generate Token----------//
+    if (buff[0] == '\0')
     {
         t.row = -1;
     }
-    else if (isArith(lexname))
+    else if (isArith(buff))
     {
-        strcpy(t.lexname, lexname);
+        strcpy(t.lexname, buff);
         t.row = row;
         t.col = col;
         strcpy(t.type, "Arithmetic");
     }
-    else if (isRelational(lexname))
+    else if (isRelational(buff))
     {
-        strcpy(t.lexname, lexname);
+        strcpy(t.lexname, buff);
         t.row = row;
         t.col = col;
         strcpy(t.type, "Relational");
     }
-    else if (isKeyword(lexname))
+    else if (isKeyword(buff))
     {
-        strcpy(t.lexname, lexname);
+        strcpy(t.lexname, buff);
         t.row = row;
         t.col = col;
         strcpy(t.type, "Keyword");
     }
-    else if (isLogical(lexname))
+    else if (isLogical(buff))
     {
-        strcpy(t.lexname, lexname);
+        strcpy(t.lexname, buff);
         t.row = row;
         t.col = col;
         strcpy(t.type, "Logical");
     }
-    else if (isSpecial(lexname) > 0)
+    else if (isSpecial(buff))
     {
-        strcpy(t.lexname, lexname);
+        strcpy(t.lexname, buff);
         t.row = row;
         t.col = col;
         strcpy(t.type, "Special Symbol");
     }
-    else if (isNumeric(lexname))
+    else if (isNumeric(buff))
     {
-        strcpy(t.lexname, lexname);
+        strcpy(t.lexname, buff);
         t.row = row;
         t.col = col;
         strcpy(t.type, "Numeric");
     }
-    else if (isIdentifier(lexname))
+    else if (isIdentifier(buff))
     {
-        strcpy(t.lexname, lexname);
+        strcpy(t.lexname, buff);
         t.row = row;
         t.col = col;
         strcpy(t.type, "Identifier");
     }
-    else if (isLiteral(lexname))
+    else if (isLiteral(buff))
     {
-        strcpy(t.lexname, lexname);
+        strcpy(t.lexname, buff);
         t.row = row;
         t.col = col;
         strcpy(t.type, "Literal");
